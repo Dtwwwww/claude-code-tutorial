@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 入门教程 — 从零开始学会 AI 编程助手</title>
+<style>
+/* ================================================================
+   全分辨率响应式 CSS — Claude Code 入门教程
+   覆盖范围：320px 小手机 → 768px 平板 → 1024px 笔记本
+            → 1440px 桌面 → 1920px+ 超宽屏 / 4K
+   ================================================================ */
+
+/* ===== 1. 基础重置 ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== 2. CSS 变量（全局 + 各断点覆盖） ===== */
+:root {
+  /* 颜色 */
+  --bg: #FAFBFC;
+  --text: #1A1A2E;
+  --text-secondary: #475569;
+  --accent: #4F46E5;
+  --accent-light: #EEF2FF;
+  --border: #E2E8F0;
+  --code-bg: #1E1E2E;
+  --code-text: #E2E8F0;
+  --tip-bg: #F0FDF4;
+  --tip-border: #22C55E;
+  --warn-bg: #FFFBEB;
+  --warn-border: #F59E0B;
+  --error-bg: #FEF2F2;
+  --error-border: #EF4444;
+
+  /* 布局变量 — 默认值（<480px 小手机），各断点覆盖 */
+  --base-font: 15px;
+  --body-lh: 1.75;
+  --content-padding-x: 16px;
+  --content-padding-y: 40px;
+  --content-padding-bottom: 60px;
+  --nav-width: 0px;          /* 0 = 侧边栏隐藏 */
+  --content-max: 100%;
+  --h1-size: 1.6rem;
+  --h2-size: 1.3rem;
+  --h3-size: 1.1rem;
+  --h4-size: 1rem;
+  --chapter-num-size: 34px;
+  --chapter-num-font: 0.9rem;
+  --chapter-gap: 36px;
+  --code-font-size: 0.8rem;
+  --code-padding: 14px;
+  --copy-btn-font: 0.72rem;
+  --copy-btn-padding: 4px 10px;
+  --screenshot-padding: 28px 14px;
+  --screenshot-icon: 1.6rem;
+  --screenshot-desc: 0.82rem;
+  --callout-padding: 14px 16px;
+  --callout-font: 0.9rem;
+  --table-cell-padding: 10px 12px;
+  --table-th-font: 0.82rem;
+  --table-td-font: 0.82rem;
+  --card-padding: 18px;
+  --radius: 10px;
+  --font-mono: 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+}
+
+/* ===== 3. HTML/Body ===== */
+html {
+  scroll-behavior: smooth;
+  font-size: var(--base-font);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+               'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: var(--body-lh);
+  overflow-x: hidden;
+}
+
+/* ===== 4. 进度条（所有分辨率） ===== */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0;
+  background: linear-gradient(90deg, var(--accent), #818CF8);
+  z-index: 1000; transition: width 0.1s linear;
+}
+
+/* ===== 5. 侧边栏导航 ===== */
+#sidebar {
+  position: fixed; top: 0; left: 0;
+  width: max(var(--nav-width), 240px);
+  height: 100vh;
+  background: white;
+  border-right: 1px solid var(--border);
+  padding: 24px 18px;
+  overflow-y: auto;
+  z-index: 999;
+  /* 默认隐藏（移动端），各断点修正 */
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#sidebar.open { transform: translateX(0); }
+
+#sidebar .logo {
+  font-size: 1rem; font-weight: 700; color: var(--accent);
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--accent-light);
+  white-space: nowrap;
+}
+#sidebar .logo span { font-size: 1.25rem; margin-right: 4px; }
+
+#sidebar nav a {
+  display: block; padding: 7px 10px; color: var(--text-secondary);
+  text-decoration: none; border-radius: 8px; font-size: 0.85rem;
+  margin-bottom: 1px; transition: all 0.2s; white-space: nowrap;
+}
+#sidebar nav a:hover { background: var(--accent-light); color: var(--accent); }
+#sidebar nav a.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+
+/* ===== 6. 菜单按钮（移动端/平板可见） ===== */
+#menu-toggle {
+  display: flex;           /* 默认显示 */
+  align-items: center; justify-content: center;
+  position: fixed; top: 10px; left: 10px; z-index: 1001;
+  width: 38px; height: 38px; border: none; border-radius: 10px;
+  background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.13);
+  font-size: 1.2rem; cursor: pointer; user-select: none;
+  transition: transform 0.2s;
+}
+#menu-toggle:active { transform: scale(0.93); }
+
+/* ===== 7. 遮罩层 ===== */
+#overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 998;
+  transition: opacity 0.3s;
+}
+#overlay.show { display: block; }
+
+/* ===== 8. 主内容区（移动先行：无侧边栏，居中） ===== */
+#main {
+  max-width: var(--content-max);
+  padding: var(--content-padding-y) var(--content-padding-x) var(--content-padding-bottom);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== 9. 章节 ===== */
+.chapter { margin-bottom: var(--chapter-gap); }
+
+.chapter h2 {
+  font-size: var(--h2-size); color: var(--text); margin-bottom: 8px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--border);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+.chapter-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  width: var(--chapter-num-size); height: var(--chapter-num-size);
+  min-width: var(--chapter-num-size);
+  background: var(--accent); color: white; border-radius: 50%;
+  font-size: var(--chapter-num-font); font-weight: 700;
+}
+
+.chapter h3 {
+  font-size: var(--h3-size); margin: 24px 0 10px; color: var(--text);
+}
+.chapter h4 {
+  font-size: var(--h4-size); margin: 18px 0 8px; color: var(--text-secondary);
+}
+.chapter p { margin-bottom: 12px; color: var(--text-secondary); }
+
+/* 列表 */
+.chapter ul, .chapter ol {
+  margin: 6px 0 14px 22px;
+  color: var(--text-secondary);
+}
+.chapter li { margin-bottom: 4px; }
+
+/* ===== 10. 行内代码 ===== */
+code:not(pre code) {
+  background: #F1F5F9; color: #E11D48;
+  padding: 1px 6px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: 0.88em;
+  word-break: break-all;  /* 长代码自动折行 */
+}
+
+/* ===== 11. 代码块 ===== */
+.code-block {
+  position: relative; background: var(--code-bg);
+  border-radius: var(--radius); margin: 14px 0;
+  overflow: hidden;
+}
+.code-block pre {
+  padding: var(--code-padding); overflow-x: auto; margin: 0;
+  -webkit-overflow-scrolling: touch;  /* iOS 平滑滚动 */
+}
+.code-block pre code {
+  color: var(--code-text); font-family: var(--font-mono);
+  font-size: var(--code-font-size); line-height: 1.65;
+  background: none; padding: 0;
+  white-space: pre;              /* 保持缩进 */
+  word-break: normal;            /* 不折行，触发横向滚动 */
+  overflow-wrap: normal;
+}
+
+/* 复制按钮 */
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(255,255,255,0.12); color: #CBD5E1;
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 5px;
+  padding: var(--copy-btn-padding); font-size: var(--copy-btn-font);
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+  white-space: nowrap;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.22); color: white; }
+.copy-btn.copied { background: var(--tip-border); border-color: var(--tip-border); color: white; }
+
+/* 代码注释颜色 */
+.code-comment { color: #6B7280; }
+
+/* ===== 12. 截图占位符 ===== */
+.screenshot-placeholder {
+  border: 2px dashed #CBD5E1; border-radius: var(--radius);
+  background: #F8FAFC; padding: var(--screenshot-padding);
+  text-align: center; color: #64748B; margin: 16px 0;
+}
+.screenshot-placeholder .icon {
+  font-size: var(--screenshot-icon); display: block; margin-bottom: 8px;
+}
+.screenshot-placeholder .desc {
+  font-size: var(--screenshot-desc); line-height: 1.5;
+}
+
+/* ===== 13. 提示框 ===== */
+.callout {
+  padding: var(--callout-padding); border-radius: 8px;
+  margin: 14px 0; border-left: 4px solid;
+  font-size: var(--callout-font);
+}
+.callout.tip    { background: var(--tip-bg);   border-color: var(--tip-border); }
+.callout.warning { background: var(--warn-bg); border-color: var(--warn-border); }
+.callout.error  { background: var(--error-bg); border-color: var(--error-border); }
+.callout .callout-icon { font-size: 1.05rem; margin-right: 4px; }
+.callout strong { display: inline; }
+
+/* ===== 14. 对比表格（移动端横向滚动） ===== */
+.compare-table {
+  width: 100%; border-collapse: collapse; margin: 14px 0;
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  /* 移动端：允许表格自身横向滚动 */
+  display: table;
+  min-width: 360px;
+}
+.compare-table th, .compare-table td {
+  padding: var(--table-cell-padding); text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table th {
+  background: #F8FAFC; font-weight: 700; color: var(--text);
+  font-size: var(--table-th-font); white-space: nowrap;
+}
+.compare-table td {
+  color: var(--text-secondary); font-size: var(--table-td-font);
+}
+.compare-table tr:last-child td { border-bottom: none; }
+
+/* ===== 15. 项目卡片 ===== */
+.project-card {
+  background: white; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: var(--card-padding);
+  margin: 14px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.project-card h4 { margin-top: 0; display: flex; align-items: center; gap: 6px; }
+.project-card .emoji { font-size: 1.25rem; flex-shrink: 0; }
+.project-card p strong { color: var(--text); }
+
+/* ===== 16. 页尾 ===== */
+footer {
+  text-align: center; padding: 32px 16px; color: #94A3B8;
+  border-top: 1px solid var(--border); margin-top: 32px;
+  font-size: 0.84rem;
+}
+footer a { color: var(--accent); text-decoration: none; }
+
+/* ================================================================
+   17. 响应式断点矩阵
+   ================================================================ */
+
+/* ---------- ≥480px：小手机横屏 / 大屏手机 ---------- */
+@media (min-width: 480px) {
+  :root {
+    --base-font: 15.5px;
+    --content-padding-x: 22px;
+    --h1-size: 1.8rem;
+    --h2-size: 1.4rem;
+    --h3-size: 1.15rem;
+    --code-font-size: 0.82rem;
+    --code-padding: 16px;
+    --screenshot-padding: 32px 18px;
+    --screenshot-icon: 1.8rem;
+    --screenshot-desc: 0.86rem;
+    --card-padding: 20px;
+    --chapter-gap: 44px;
+  }
+}
+
+/* ---------- ≥768px：平板 ---------- */
+@media (min-width: 768px) {
+  :root {
+    --base-font: 16px;
+    --body-lh: 1.8;
+    --content-padding-x: 32px;
+    --content-padding-y: 48px;
+    --content-padding-bottom: 72px;
+    --h1-size: 2rem;
+    --h2-size: 1.5rem;
+    --h3-size: 1.2rem;
+    --h4-size: 1.05rem;
+    --chapter-num-size: 38px;
+    --chapter-num-font: 1rem;
+    --chapter-gap: 48px;
+    --code-font-size: 0.84rem;
+    --code-padding: 18px;
+    --copy-btn-font: 0.76rem;
+    --screenshot-padding: 36px 22px;
+    --screenshot-icon: 2rem;
+    --screenshot-desc: 0.9rem;
+    --callout-padding: 15px 18px;
+    --callout-font: 0.93rem;
+    --table-cell-padding: 11px 14px;
+    --table-th-font: 0.85rem;
+    --table-td-font: 0.86rem;
+    --card-padding: 22px;
+    --radius: 11px;
+  }
+}
+
+/* ---------- ≥1024px：小桌面 / 笔记本（侧边栏出现） ---------- */
+@media (min-width: 1024px) {
+  :root {
+    --nav-width: 235px;
+    --content-max: 780px;
+    --content-padding-x: 44px;
+    --content-padding-y: 52px;
+    --content-padding-bottom: 80px;
+    --h1-size: 2.2rem;
+    --h2-size: 1.7rem;
+    --h3-size: 1.25rem;
+    --chapter-num-size: 42px;
+    --chapter-num-font: 1.05rem;
+    --code-font-size: 0.86rem;
+    --screenshot-padding: 40px 24px;
+    --chapter-gap: 52px;
+  }
+
+  /* 侧边栏始终可见 */
+  #sidebar {
+    transform: translateX(0) !important;
+    width: var(--nav-width);
+    padding: 24px 16px;
+  }
+
+  /* 隐藏菜单按钮和遮罩 */
+  #menu-toggle { display: none; }
+  #overlay { display: none !important; }
+
+  /* 主内容区：在侧边栏右侧的空间中居中 */
+  #main {
+    max-width: var(--content-max);
+    margin-left: auto;
+    margin-right: auto;
+    /* 将内容向右偏移半个侧边栏宽度，使视觉上在视口中居中 */
+    position: relative;
+    left: calc(var(--nav-width) / 2);
+  }
+}
+
+/* ---------- ≥1366px：标准桌面 ---------- */
+@media (min-width: 1366px) {
+  :root {
+    --nav-width: 250px;
+    --content-max: 820px;
+    --content-padding-x: 52px;
+    --base-font: 16.5px;
+    --h1-size: 2.4rem;
+    --h2-size: 1.8rem;
+    --h3-size: 1.3rem;
+    --chapter-num-size: 44px;
+    --chapter-num-font: 1.1rem;
+    --code-font-size: 0.88rem;
+    --code-padding: 20px;
+    --screenshot-padding: 44px 28px;
+    --screenshot-icon: 2.2rem;
+    --screenshot-desc: 0.92rem;
+    --chapter-gap: 56px;
+    --radius: 12px;
+  }
+
+  #sidebar { padding: 24px 20px; }
+  #sidebar nav a { font-size: 0.9rem; padding: 8px 12px; }
+
+  #main {
+    max-width: var(--content-max);
+    left: calc(var(--nav-width) / 2);
+  }
+}
+
+/* ---------- ≥1920px：超宽屏 / 2K / 4K ---------- */
+@media (min-width: 1920px) {
+  :root {
+    --nav-width: 270px;
+    --content-max: 900px;
+    --base-font: 17px;
+    --content-padding-x: 60px;
+    --content-padding-y: 60px;
+    --content-padding-bottom: 96px;
+    --h1-size: 2.6rem;
+    --h2-size: 1.9rem;
+    --h3-size: 1.35rem;
+    --chapter-gap: 64px;
+    --code-font-size: 0.9rem;
+  }
+
+  /* 超宽屏：侧边栏保持左对齐，内容区在剩余空间居中 */
+  #sidebar { padding: 28px 24px; left: 0; }
+
+  #main {
+    max-width: var(--content-max);
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    left: calc(var(--nav-width) / 2);
+  }
+}
+
+/* ---------- ≥2560px：2.5K / 4K 大屏 ---------- */
+@media (min-width: 2560px) {
+  :root {
+    --nav-width: 280px;
+    --content-max: 960px;
+    --base-font: 18px;
+    --content-padding-x: 80px;
+    --h1-size: 2.8rem;
+    --h2-size: 2rem;
+    --h3-size: 1.4rem;
+    --chapter-gap: 72px;
+    --code-font-size: 0.92rem;
+    --body-lh: 1.85;
+  }
+
+  #sidebar { padding: 32px 28px; }
+
+  #main {
+    max-width: var(--content-max);
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    left: calc(var(--nav-width) / 2);
+  }
+}
+
+/* ================================================================
+   18. 特定元素响应式微调
+   ================================================================ */
+
+/* 封面标题特殊处理 */
+.cover-chapter {
+  text-align: center;
+  padding: 40px 0 30px;
+}
+.cover-title {
+  font-size: var(--h1-size);
+  border: none !important;
+  justify-content: center;
+  margin-bottom: 14px;
+  display: flex;
+}
+.cover-subtitle {
+  font-size: calc(var(--h3-size) * 0.95);
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin: 0 auto;
+}
+.cover-meta {
+  margin-top: 18px;
+  color: #94A3B8;
+  font-size: 0.82rem;
+}
+
+/* 庆祝文字 */
+.celebrate {
+  font-size: calc(var(--h4-size) * 1.05);
+  text-align: center;
+  margin: 24px 0;
+}
+
+/* 通用响应式字体（覆盖残留内联样式） */
+.chapter h1, .cover-title { font-size: var(--h1-size) !important; }
+
+/* 错误提示框内的代码 */
+.callout.error code {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  vertical-align: bottom;
+}
+
+/* 小屏幕下表格区域不限最小宽度 */
+@media (max-width: 480px) {
+  .compare-table {
+    min-width: 280px;
+    font-size: 0.78rem;
+  }
+  .compare-table th, .compare-table td {
+    padding: 8px 10px;
+  }
+}
+
+/* ===== 真实截图 ===== */
+.screenshot-real {
+  text-align: center;
+  margin: 20px 0;
+}
+.screenshot-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;            /* 鼠标变手型，暗示可点击 */
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.screenshot-img:hover {
+  transform: scale(1.02);     /* 悬停轻微放大 */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+}
+.screenshot-caption {
+  font-size: 0.84rem;
+  color: #64748B;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ===== 灯箱（图片全屏预览） ===== */
+#lightbox {
+  display: none;                    /* 默认隐藏 */
+  position: fixed; inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.88);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: lightboxFadeIn 0.25s ease;
+}
+#lightbox.show {
+  display: flex;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#lightbox-img {
+  max-width: 92vw;
+  max-height: 90vh;
+  object-fit: contain;           /* 保持比例，完整显示 */
+  border-radius: 6px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  cursor: default;               /* 图片本身不显示手型 */
+  animation: lightboxZoomIn 0.3s ease;
+}
+
+@keyframes lightboxZoomIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+#lightbox-close {
+  position: fixed;
+  top: 16px; right: 24px;
+  color: rgba(255,255,255,0.75);
+  font-size: 2.2rem;
+  font-weight: 300;
+  cursor: pointer;
+  z-index: 2001;
+  line-height: 1;
+  transition: color 0.2s;
+  user-select: none;
+}
+#lightbox-close:hover {
+  color: white;
+}
+
+/* 打印样式 */
+@media print {
+  #sidebar, #menu-toggle, #overlay, #progress-bar { display: none !important; }
+  #main { margin-left: 0 !important; max-width: 100% !important; padding: 0 !important; }
+  body { font-size: 12pt; line-height: 1.6; color: #000; background: #fff; }
+  .code-block { background: #F8FAFC; border: 1px solid #CBD5E1; break-inside: avoid; }
+  .code-block pre code { color: #1A1A2E; }
+  .screenshot-placeholder { border: 1px solid #CBD5E1; }
+  .chapter { page-break-after: always; }
+}
+</style>
+</head>
+<body>
+
+<!-- 进度条 -->
+<div id="progress-bar"></div>
+
+<!-- 移动端菜单按钮 -->
+<button id="menu-toggle" aria-label="菜单">☰</button>
+
+<!-- 菜单遮罩层 -->
+<div id="overlay"></div>
+
+<!-- 灯箱（图片预览） -->
+<div id="lightbox">
+  <span id="lightbox-close">&times;</span>
+  <img id="lightbox-img" src="" alt="预览截图">
+</div>
+
+<!-- ===== 侧边栏导航 =====
+<aside id="sidebar">
+  <div class="logo"><span>🤖</span>Claude Code 教程</div>
+  <nav>
+    <a href="#ch0">0. 基础概念</a>
+    <a href="#ch1">1. 安装 Node.js</a>
+    <a href="#ch2">2. 安装 Claude Code</a>
+    <a href="#ch3">3. 国内用户配置 API</a>
+    <a href="#ch4">4. 第一次对话</a>
+    <a href="#ch5">5. 三个实战项目</a>
+    <a href="#vscode">6. 在 VSCode 中使用</a>
+    <a href="#ch6">7. 常见问题排错</a>
+    <a href="#ch7">8. 下一步学什么</a>
+  </nav>
+</aside> -->
+
+<!-- ===== 主内容 ===== -->
+<main id="main">
+
+<!-- 封面 -->
+<div class="chapter cover-chapter">
+  <h1 class="cover-title">
+    🤖 Claude Code 入门教程
+  </h1>
+  <p class="cover-subtitle">
+    从零开始，手把手教你安装和使用 AI 编程助手<br>
+    <strong>不需要任何编程基础，只要会打字就能学会</strong>
+  </p>
+  <p class="cover-meta">
+    预计阅读时间：15 分钟 &nbsp;| &nbsp;适合人群：完全零基础
+  </p>
+</div>
+
+<!-- ===== 第 0 章 ===== -->
+<section class="chapter" id="ch0">
+  <h2><span class="chapter-num">0</span> 开始之前 — 三个你必须知道的概念</h2>
+  <p>别被这些名词吓到！我们用最通俗的方式一一解释，保证你 5 分钟就能搞懂。</p>
+
+  <h3>📺 什么是「终端 / 命令行」？</h3>
+  <p>
+    你平时操作电脑是<strong>用鼠标点来点去</strong>，对吧？这叫<strong>「图形界面」</strong>（GUI）。
+    终端（也叫命令行）就是<strong>「用键盘打字来操作电脑」</strong>的方式。
+  </p>
+  <p>
+    打个比方：你去餐厅点菜——
+  </p>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><strong>图形界面</strong> = 看菜单上的图片，用手指点「我要这个」</li>
+    <li><strong>终端</strong> = 直接对服务员说「来一份红烧肉，少辣」</li>
+  </ul>
+  <p>两种方式都能完成同样的事，但终端打字更快、更精确，程序员更喜欢用。Claude Code 就运行在终端里——你<strong>打字告诉它要做什么</strong>，它帮你搞定。</p>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>别担心！你不会用终端也没关系，本教程每一步都会告诉你该输入什么。
+  </div>
+
+  <h4>如何打开终端？</h4>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><strong>Windows：</strong>按下键盘上的 <code>Win</code> 键（Windows 图标键）+ <code>R</code> 键，输入 <code>powershell</code>，点确定</li>
+    <li><strong>Mac：</strong>点屏幕右上角的放大镜图标（聚焦搜索），输入 <code>terminal</code>，回车</li>
+  </ul>
+
+  <div class="screenshot-real">
+    <img
+      src="image/power_shell.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+    <div class="screenshot-caption">📸 打开终端 — Windows：Win+R → 输入 powershell → 确定（Mac：聚焦搜索 → 输入 terminal → 回车）</div>
+  </div>
+
+  <h3>📦 什么是 Node.js / npm？</h3>
+  <p>
+    把电脑想象成一<strong>部手机</strong>：
+  </p>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><strong>Node.js</strong> = 手机的「操作系统」（比如 iOS 或 Android）。没有它，很多程序跑不起来。</li>
+    <li><strong>npm</strong> = 手机的「应用商店」。你用它来下载和安装各种程序。</li>
+  </ul>
+  <p>
+    Claude Code 是一个用 JavaScript 写的程序，它需要 Node.js 这个「操作系统」才能运行。
+    我们要用 npm 这个「应用商店」来安装它——跟你在手机上装 App 一个道理。
+  </p>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>你不需要会写 JavaScript，也不需要学 Node.js。只是把它装好就行，后面的事交给 Claude Code。
+  </div>
+
+  <h3>🤖 什么是 Claude Code？</h3>
+  <p>
+    Claude Code 是 Anthropic 公司开发的 <strong>AI 编程助手</strong>。它运行在你的终端里，
+    你可以用<strong>日常的中文</strong>跟它对话，让它帮你：
+  </p>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>🏗️ <strong>写代码</strong>——比如「帮我做一个个人主页网页」</li>
+    <li>🔍 <strong>读代码</strong>——比如「这段代码是什么意思？帮我解释一下」</li>
+    <li>🐛 <strong>修 bug</strong>——比如「这个网页按钮点了没反应，帮我看看哪里有问题」</li>
+    <li>📂 <strong>管理项目</strong>——比如「帮我把这些文件整理一下」</li>
+  </ul>
+  <p>
+    想象你旁边坐了一位<strong>资深程序员</strong>，你跟他说需求，他帮你干活——Claude Code 就是这位程序员，而且不眠不休、随叫随到。
+  </p>
+</section>
+
+<!-- ===== 第 1 章 ===== -->
+<section class="chapter" id="ch1">
+  <h2><span class="chapter-num">1</span> 安装 Node.js（基础环境）</h2>
+  <p>在使用 Claude Code 之前，我们必须先把它的「运行环境」Node.js 装好。跟着下面的步骤做，大约需要 3 分钟。</p>
+
+  <h3>Windows 安装步骤</h3>
+  <p><strong>第 1 步：下载安装包</strong></p>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>打开浏览器，访问 <a href="https://nodejs.org" target="_blank">https://nodejs.org</a></li>
+    <li>你会看到两个绿色的大按钮——点<strong>左边的 LTS 版本</strong>（长期支持版，最稳定）</li>
+    <li>下载完成后，你会得到一个 <code>.msi</code> 文件</li>
+  </ol>
+
+  <div class="screenshot-real">
+    <img
+      src="image/node_download.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+    <div class="screenshot-caption">📸 Node.js 官网首页 — 点击左侧 LTS 按钮下载</div>
+  </div>
+
+  <p><strong>第 2 步：安装</strong></p>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>双击下载的 <code>.msi</code> 文件</li>
+    <li>一路点 <strong>Next（下一步）</strong>，所有选项保持默认</li>
+    <li>最后点 <strong>Install（安装）</strong></li>
+    <li>看到绿色的完成提示后，点 <strong>Finish（完成）</strong></li>
+  </ol>
+
+
+
+  <h3>Mac 安装步骤</h3>
+  <p>同样访问 <a href="https://nodejs.org" target="_blank">https://nodejs.org</a>，下载 <code>.pkg</code> 文件，双击安装即可。如果你装了 Homebrew，也可以在终端里输入：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>brew install node  <span class="code-comment"># 用 Homebrew 安装 Node.js（如果你装过 Homebrew 的话）</span></code></pre>
+  </div>
+
+  <h3>✅ 验证安装是否成功</h3>
+  <p>安装完成后，<strong>关掉终端再重新打开</strong>（这一步很重要！），然后输入以下两条命令：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>node -v   <span class="code-comment"># 查看 Node.js 版本号，比如 v20.11.0</span>
+npm -v    <span class="code-comment"># 查看 npm 版本号，比如 10.2.4</span></code></pre>
+  </div>
+
+  <p>如果能显示出版本号（一串数字），说明安装成功！如果显示「不是内部或外部命令」，说明安装有问题——别慌，跳到<a href="#ch6">第 7 章</a>看解决方案。</p>
+
+
+
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span> <strong>注意：</strong>刚安装完 Node.js，一定要<strong>关掉终端再重新打开</strong>。否则终端「不认识」新装的 Node.js，后面的命令会报错。
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>本教程依赖 Node.js 版本 ≥ 18。当前官网 LTS 版本一般都满足要求，不用担心。
+  </div>
+</section>
+
+<!-- ===== 第 2 章 ===== -->
+<section class="chapter" id="ch2">
+  <h2><span class="chapter-num">2</span> 安装 Claude Code</h2>
+  <p>Node.js 装好了，现在可以装 Claude Code 了。就一条命令，非常简单。</p>
+
+  <h3>🗒️ 打开终端</h3>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><strong>Windows：</strong> <code>Win</code> + <code>R</code> → 输入 <code>powershell</code> → 回车</li>
+    <li><strong>Mac：</strong> 聚焦搜索 → 输入 <code>terminal</code> → 回车</li>
+  </ul>
+
+  <h3>📥 执行安装命令</h3>
+  <p>在终端中粘贴下面这条命令，然后按回车：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>npm install -g @anthropic-ai/claude-code</code></pre>
+  </div>
+
+  <p>这条命令在做什么？我们来拆解一下：</p>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><code>npm install</code> = 「应用商店，帮我下载安装一个东西」</li>
+    <li><code>-g</code> = 「全局安装，装完后在任何地方都能用」（global 的缩写）</li>
+    <li><code>@anthropic-ai/claude-code</code> = 「要装的东西叫这个名」（包名）</li>
+  </ul>
+
+  <p>现在按下回车，终端会开始下载。你看到一堆进度条和文字在滚动——<strong>这是正常现象，不用管</strong>。喝口水，等 1-3 分钟。</p>
+
+  <img
+      src="image/claude_code.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <h3>✅ 验证安装</h3>
+  <p>安装完成后，输入以下命令验证：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>claude --version  <span class="code-comment"># 如果显示版本号（如 v1.0.0），说明安装成功！</span></code></pre>
+  </div>
+
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span> <strong>注意：</strong>如果提示「claude 不是内部或外部命令」，试试关掉终端重新打开，然后再执行上面的命令。
+  </div>
+
+  <p class="celebrate">🎉 <strong>恭喜！你已经完成了最难的一步！</strong>Claude Code 已经装到你电脑上了。</p>
+</section>
+
+<!-- ===== 第 3 章 ===== -->
+<section class="chapter" id="ch3">
+  <h2><span class="chapter-num">3</span> 国内用户必读 — 配置 API 接口</h2>
+  <p>由于网络限制，Claude Code 的官方服务在国内<strong>无法直接访问</strong>。但别担心！我们可以用国内的大模型 API 来替代，效果一样好，价格还便宜。</p>
+
+  <h3>🚫 国内用户会遇到的问题</h3>
+  <p>当你满怀期待地输入 <code>claude</code> 启动时，大概率会看到类似这样的报错：</p>
+
+  <img
+      src="image/error.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <div class="callout error">
+    <span class="callout-icon">❌</span> <strong>为什么用不了？</strong>Anthropic（Claude 的开发公司）的服务器在海外，国内网络无法直接访问。即使开了 VPN，也可能不稳定。这不是你安装的问题，是<strong>网络环境的限制</strong>。
+  </div>
+
+  <h3>✅ 解决方案：使用国内大模型 API</h3>
+  <p>我们推荐使用 <strong>DeepSeek（深度求索）</strong>——国产顶尖大模型，编程能力出色，而且<strong>价格极低</strong>（约 ¥1/百万 tokens，注册还送免费额度）。</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>🌐 Claude 官方 API</th>
+        <th>🇨🇳 DeepSeek API</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>国内访问</strong></td>
+        <td>❌ 需要特殊网络环境</td>
+        <td>✅ 直接访问，无需代理</td>
+      </tr>
+      <tr>
+        <td><strong>注册方式</strong></td>
+        <td>海外手机号 + 外币信用卡</td>
+        <td>✅ 国内手机号即可注册</td>
+      </tr>
+      <tr>
+        <td><strong>编程能力</strong></td>
+        <td>⭐⭐⭐⭐⭐ 顶级</td>
+        <td>⭐⭐⭐⭐⭐ 顶级（尤其擅长代码）</td>
+      </tr>
+      <tr>
+        <td><strong>价格</strong></td>
+        <td>$3 / 百万 tokens</td>
+        <td>¥1 / 百万 tokens（约 1/20）</td>
+      </tr>
+      <tr>
+        <td><strong>新用户福利</strong></td>
+        <td>无</td>
+        <td>✅ 注册赠送 500 万 tokens 免费额度</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>DeepSeek 的代码能力在全球排名靠前，日常编程任务完全够用，甚至在某些中文场景下比 Claude 更好。而且 500 万免费额度够你用很久了！
+  </div>
+
+  <h3>📝 第 1 步：注册 DeepSeek 账号</h3>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>打开浏览器，访问 <a href="https://platform.deepseek.com" target="_blank">https://platform.deepseek.com</a></li>
+    <li>点击右上角「注册 / 登录」</li>
+    <li>用<strong>手机号</strong>注册（支持 +86 中国大陆手机号）</li>
+    <li>输入验证码，设置密码，完成注册</li>
+  </ol>
+
+
+
+  <h3>🔑 第 2 步：获取 API Key</h3>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>注册成功后，登录 DeepSeek 开放平台</li>
+    <li>点击左侧菜单栏的 <strong>「API Keys」</strong></li>
+    <li>点击 <strong>「创建 API Key」</strong> 按钮</li>
+    <li>给 Key 起个名字（比如「我的 Claude Code」）</li>
+    <li>点击「创建」，页面会显示一长串字符——<strong>这就是你的 API Key</strong></li>
+    <li><strong>立刻复制并保存！</strong>Key 只显示一次，关闭页面后就看不到了</li>
+    <li><strong>使用前记得先充值！</strong>没有充值的话是用不了的</li>
+  </ol>
+
+  <img
+      src="image/deepseek_api_keys.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span> <strong>重要：</strong>API Key 就像你的银行卡密码！<strong>不要</strong>发给任何人，<strong>不要</strong>截图发朋友圈，<strong>不要</strong>贴到公开的地方。如果不小心泄露了，去 DeepSeek 后台删除重新创建一个就行。
+  </div>
+
+  <h3>⚙️ 第 3 步：配置 Claude Code 使用 DeepSeek</h3>
+  <p>拿到了 API Key，现在让 Claude Code「认识」DeepSeek。在终端中执行以下命令：</p>
+
+  <p><strong>Windows PowerShell：</strong></p>
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code><span class="code-comment"># 设置 DeepSeek 的 API 地址（告诉 Claude Code 去哪儿找模型）</span>
+$env:ANTHROPIC_BASE_URL = "https://api.deepseek.com/v1"
+
+<span class="code-comment"># 设置你的 API Key（把下面这串换成你自己的 Key，注意保留引号）</span>
+$env:ANTHROPIC_API_KEY = "sk-你的DeepSeek-Key粘贴在这里"</code></pre>
+  </div>
+
+  <p><strong>Mac / Linux 终端：</strong></p>
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code><span class="code-comment"># 设置 DeepSeek 的 API 地址</span>
+export ANTHROPIC_BASE_URL="https://api.deepseek.com/v1"
+
+<span class="code-comment"># 设置你的 API Key（把下面这串换成你自己的 Key）</span>
+export ANTHROPIC_API_KEY="sk-你的DeepSeek-Key粘贴在这里"</code></pre>
+  </div>
+
+  <p><strong>🔧 永久配置（推荐，一劳永逸）：</strong></p>
+  <p>上面的命令只在<strong>当前终端窗口</strong>有效。关掉终端就没了。如果想永久保存，用下面这条命令：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code><span class="code-comment"># Windows PowerShell（永久保存，对所有新终端窗口生效）</span>
+[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://api.deepseek.com/v1", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY", "sk-你的Key", "User")
+
+<span class="code-comment"># Mac / Linux（永久保存到配置文件）</span>
+echo 'export ANTHROPIC_BASE_URL="https://api.deepseek.com/v1"' >> ~/.zshrc
+echo 'export ANTHROPIC_API_KEY="sk-你的Key"' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+  </div>
+
+  <img
+      src="image/cc.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <h3>✅ 验证配置是否成功</h3>
+  <p>配置完成后，输入以下命令验证：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>claude  <span class="code-comment"># 启动 Claude Code</span></code></pre>
+  </div>
+
+  <p>如果能顺利进入交互界面，看到欢迎语和输入光标——<strong>恭喜，配置成功！</strong>你现在用的是 DeepSeek 的大模型，网络通畅，费用低廉。</p>
+
+  <img
+      src="image/CC (2).png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>DeepSeek 新用户有 500 万 tokens 免费额度。日常写代码、问问题，够用一两个月。如果用完了，充值也很便宜——10 块钱能用很久。而且支持<strong>微信/支付宝</strong>付款，非常方便。
+  </div>
+
+  <p class="celebrate">🎉 <strong>恭喜！最难的两步（安装 + 配置国内 API）都搞定了！</strong>现在可以正式开始使用了。</p>
+</section>
+
+<!-- ===== 第 4 章 ===== -->
+<section class="chapter" id="ch4">
+  <h2><span class="chapter-num">4</span> 第一次对话</h2>
+  <p>万事俱备！现在让我们和 Claude Code 说第一句话。你会亲眼看到它帮你<strong>生成一个真实的网页</strong>。</p>
+
+  <h3>🚀 启动 Claude Code</h3>
+  <p>在终端中输入：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>claude  <span class="code-comment"># 启动 Claude Code 交互模式</span></code></pre>
+  </div>
+
+  <p>你会看到 Claude Code 的欢迎界面，出现一个<strong>输入光标</strong>，等待你打字。</p>
+
+  <h3>💬 说第一句话</h3>
+  <p>试着输入下面这句话，然后按回车：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>帮我创建一个写有"你好，世界！这是我用 AI 做的第一个网页！"的 HTML 文件，背景用好看的渐变色，字体大一点，保存为 hello.html</code></pre>
+  </div>
+
+  <p>按下回车后，<strong>神奇的事情发生了</strong>：</p>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>Claude Code 理解你的需求（「哦，你要一个好看的网页」）</li>
+    <li>自动编写 HTML 和 CSS 代码</li>
+    <li>在你的当前目录下创建了 <code>hello.html</code> 文件</li>
+    <li>告诉你文件在哪里，怎么打开它</li>
+  </ol>
+
+  <img
+      src="image/hello_world.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <p>现在，打开你的文件管理器，找到那个 <code>hello.html</code> 文件，<strong>双击它</strong>——浏览器会打开，你就能看到自己「指挥 AI」做出来的网页了！</p>
+
+  <img
+      src="image/hello_world (2).png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <p class="celebrate">🎉 <strong>恭喜！你已经成功使用 Claude Code 完成了第一个任务！</strong></p>
+
+  <h3>⌨️ 常用操作速查</h3>
+  <table class="compare-table">
+    <thead>
+      <tr><th>操作</th><th>按键 / 方法</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>发送消息</td><td>输入文字后按 <code>Enter</code></td></tr>
+      <tr><td>换行（不发送）</td><td><code>Shift</code> + <code>Enter</code></td></tr>
+      <tr><td>退出 Claude Code</td><td>输入 <code>/exit</code> 或按 <code>Ctrl</code> + <code>C</code></td></tr>
+      <tr><td>清屏</td><td>输入 <code>/clear</code></td></tr>
+      <tr><td>查看帮助</td><td>输入 <code>/help</code></td></tr>
+      <tr><td>让 Claude 查看文件</td><td>直接描述文件名或拖拽文件到终端</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>不知道怎么描述你的需求？没关系！想到什么就说什么，像跟朋友聊天一样。Claude Code 会主动问你不够清楚的地方。
+  </div>
+</section>
+
+<!-- ===== 第 5 章 ===== -->
+<section class="chapter" id="ch5">
+  <h2><span class="chapter-num">5</span> 三个实战小项目</h2>
+  <p>光说不练假把式。通过下面三个小练习，你会快速掌握 Claude Code 的日常用法。</p>
+
+  <!-- 项目 1 -->
+  <div class="project-card">
+    <h4><span class="emoji">💳</span> 项目 1：制作个人名片网页</h4>
+    <p style="color: var(--text-secondary);">用 Claude Code 生成一张包含你个人信息的精美网页名片。</p>
+    <p><strong>操作指令（复制到 Claude Code 中）：</strong></p>
+    <div class="code-block">
+      <button class="copy-btn">📋 复制</button>
+      <pre><code>帮我做一个个人名片网页，要求：
+1. 姓名写"[你的名字]"，职业写"[你的职业]"，邮箱写"[你的邮箱]"
+2. 设计要现代、好看，中心对齐
+3. 用卡片式布局，白色卡片 + 浅色阴影
+4. 加上好看的头像占位符
+5. 保存为 card.html</code></pre>
+    </div>
+    <p><strong>你学到了什么：</strong></p>
+    <ul style="margin: 4px 0 0 24px; color: var(--text-secondary);">
+      <li>如何把需求描述清楚让 AI 理解</li>
+      <li>如何用中文和 AI 讨论设计细节</li>
+      <li>不满意的部分可以让 AI 修改（「帮我把背景换成蓝色」）</li>
+    </ul>
+  </div>
+
+  <!-- 项目 2 -->
+  <div class="project-card">
+    <h4><span class="emoji">🔍</span> 项目 2：让 AI 帮你解释代码</h4>
+    <p style="color: var(--text-secondary);">网上看到一段代码看不懂？让 Claude Code 逐行解释给你听。</p>
+    <p><strong>操作指令（复制到 Claude Code 中）：</strong></p>
+    <div class="code-block">
+      <button class="copy-btn">📋 复制</button>
+      <pre><code>帮我解释一下下面这段代码每一行在做什么，用纯中文大白话：
+
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+console.log(fibonacci(10));</code></pre>
+    </div>
+    <p><strong>你学到了什么：</strong></p>
+    <ul style="margin: 4px 0 0 24px; color: var(--text-secondary);">
+      <li>Claude Code 可以当作「随身编程老师」来用</li>
+      <li>看不懂的代码直接扔给它，让它解释到你看懂为止</li>
+      <li>你可以追问「再简单一点」「能用比喻解释吗」</li>
+    </ul>
+  </div>
+
+  <!-- 项目 3 -->
+  <div class="project-card">
+    <h4><span class="emoji">🎨</span> 项目 3：修改和优化网页</h4>
+    <p style="color: var(--text-secondary);">继续改进项目 1 的名片网页，让 AI 帮你调整样式。</p>
+    <p><strong>操作指令（在同一个会话中继续）：</strong></p>
+    <div class="code-block">
+      <button class="copy-btn">📋 复制</button>
+      <pre><code>帮我把刚才的名片网页做以下修改：
+1. 背景颜色改成从蓝色到紫色的渐变
+2. 卡片字体再大一号
+3. 在卡片底部加一排社交媒体图标（微博、微信、GitHub）
+4. 鼠标悬停在卡片上时加一个轻微的上浮动画效果</code></pre>
+    </div>
+    <p><strong>你学到了什么：</strong></p>
+    <ul style="margin: 4px 0 0 24px; color: var(--text-secondary);">
+      <li>Claude Code 的「上下文记忆」——它记得你之前的对话</li>
+      <li>迭代式开发：先做出基本版，再逐步优化</li>
+      <li>「所见即所得」：改完保存，刷新浏览器就能看到效果</li>
+    </ul>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>做完三个项目后，试着组合你学到的技能——比如做一个自己的个人主页，或者帮朋友做一个邀请函网页。你会发现 Claude Code 能做的不止这些！
+  </div>
+</section>
+
+<!-- ===== 第 6 章：VSCode 图形化使用 ===== -->
+<section class="chapter" id="vscode">
+  <h2><span class="chapter-num">6</span> 在 VSCode 中使用 Claude Code（图形化界面）</h2>
+  <p>觉得终端黑窗口太吓人？没关系！Claude Code 也有 <strong>VSCode 插件版本</strong>，全部用鼠标点击操作，像聊天软件一样简单。</p>
+
+  <h3>🤔 什么是 VSCode？</h3>
+  <p>
+    VSCode（全称 Visual Studio Code）是微软出品的<strong>免费代码编辑器</strong>。把它想象成「高级版记事本」——可以写代码、看文件、装插件，而且是<strong>全中文界面</strong>。
+  </p>
+  <p>如果你还没有安装 VSCode：</p>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>访问 <a href="https://code.visualstudio.com" target="_blank">https://code.visualstudio.com</a></li>
+    <li>下载安装包（Windows 选 .exe，Mac 选 .dmg）</li>
+    <li>双击安装，一路点「下一步」即可</li>
+  </ol>
+
+
+  <h3>🔌 第 1 步：安装 Claude Code 插件</h3>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>打开 VSCode</li>
+    <li>点击<strong>左侧竖排工具栏</strong>的「扩展」图标（四个小方块的样子）</li>
+    <li>或者按快捷键 <code>Ctrl + Shift + X</code>（Mac 按 <code>Cmd + Shift + X</code>）</li>
+    <li>在搜索框中输入 <code>Claude Code</code></li>
+    <li>找到 Anthropic 官方发布的 <strong>「Claude Code」</strong>插件</li>
+    <li>点击绿色的 <strong>「Install（安装）」</strong>按钮</li>
+  </ol>
+
+  <img
+      src="image/VScode_cc.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>安装完成后，VSCode 左侧工具栏会多出一个 Claude Code 的图标（一个对话框形状）。如果没看到，试试重启 VSCode。
+  </div>
+
+  <h3>⚙️ 第 2 步：配置 DeepSeek API（用环境变量）</h3>
+  <p>Claude Code 插件<strong>通过环境变量读取 API 配置</strong>，而不是 VSCode 的设置界面。这和<a href="#ch3">第 3 章</a>在终端中的配置方式完全一样——需要先在系统中设置好环境变量，VSCode 插件才能正常工作。</p>
+
+  <p>如果你已经按照<a href="#ch3">第 3 章</a>的步骤设置过环境变量了，可以<strong>跳过这一步</strong>，直接看下面的「第 3 步」。</p>
+
+  <p>如果还没设置，请先回到<a href="#ch3">第 3 章</a>，按照里面的命令设置 <code>ANTHROPIC_BASE_URL</code> 和 <code>ANTHROPIC_API_KEY</code> 两个环境变量。设置完成后，<strong>务必重启 VSCode</strong>，插件才能读到新的环境变量。</p>
+
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span> <strong>注意：</strong>环境变量设置完成后，一定要<strong>关掉 VSCode 再重新打开</strong>，否则 Claude Code 插件读不到配置，会报网络连接错误。
+  </div>
+
+
+  <h3>🚀 第 3 步：开始使用 — 三种打开方式</h3>
+  <p>配置完成后，有三种方式打开 Claude Code：</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th>方式</th><th>操作</th><th>适合场景</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>📌 侧边栏</strong></td>
+        <td>点击 VSCode 左侧工具栏的 Claude Code 图标</td>
+        <td>日常聊天、问问题、写代码</td>
+      </tr>
+      <tr>
+        <td><strong>⌨️ 快捷键</strong></td>
+        <td>按 <code>Ctrl + Shift + L</code>（Mac: <code>Cmd + Shift + L</code>）</td>
+        <td>快速呼出，最高效</td>
+      </tr>
+      <tr>
+        <td><strong>🖱️ 右键菜单</strong></td>
+        <td>选中一段代码 → 右键 → 选择「Claude Code: 解释代码」</td>
+        <td>针对某段代码提问</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <img
+      src="image/VS_CC.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <h3>💬 第 4 步：第一次对话（VSCode 版）</h3>
+  <p>在 Claude Code 对话框中输入：</p>
+
+  <div class="code-block">
+    <button class="copy-btn">📋 复制</button>
+    <pre><code>帮我创建一个个人介绍网页，要求：
+1. 名字叫"小明"，职业是"设计师"
+2. 背景用好看的渐变色
+3. 中间放一张圆形的头像占位图
+4. 保存为 about.html</code></pre>
+  </div>
+
+  <img
+      src="image/CC_XM.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+
+  <p>代码生成后，在 VSCode 的文件列表中找到 <code>about.html</code>，<strong>右键 →「Reveal in File Explorer（在文件资源管理器中显示）」</strong>，然后双击用浏览器打开——完美！全程没碰一下终端，全部用鼠标点点点就完成了。</p>
+
+  <img
+      src="image/XM.png"
+      class="screenshot-img"
+      loading="lazy"
+      onerror="this.style.display='none';this.parentElement.querySelector('.screenshot-fallback').style.display='block';"
+    >
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>小贴士：</strong>在 VSCode 中使用 Claude Code 的优势：
+    <ul style="margin: 8px 0 0 18px;">
+      <li>✅ 全图形界面，零命令行操作</li>
+      <li>✅ 边写代码边和 AI 聊天，所见即所得</li>
+      <li>✅ AI 生成的文件自动在编辑器中打开，立刻看到效果</li>
+      <li>✅ 选中代码右键就能让 AI 解释、优化、改 bug</li>
+      <li>✅ 支持中文界面，所有按钮都是中文</li>
+    </ul>
+  </div>
+
+  <p class="celebrate">🎉 <strong>告别黑窗口！现在你可以用 VSCode 的图形界面愉快地使用 Claude Code 了。</strong></p>
+</section>
+
+<!-- ===== 第 7 章 ===== -->
+<section class="chapter" id="ch6">
+  <h2><span class="chapter-num">7</span> 常见问题与排错</h2>
+  <p>安装和使用过程中难免遇到问题。别慌，下面汇总了最常见的几种情况，按步骤检查就能解决。</p>
+
+  <div class="callout error">
+    <span class="callout-icon">❌</span> <strong>常见错误："npm 不是内部或外部命令"</strong><br><br>
+    <strong>原因：</strong>Node.js 没有正确安装，或者环境变量没生效。<br><br>
+    <strong>解决：</strong><br>
+    ✅ 先确认 Node.js 是否装好：打开「控制面板 → 程序和功能」，搜索 Node.js。<br>
+    ✅ 如果已安装，关掉终端重新打开试试。<br>
+    ✅ 如果没安装，回到<a href="#ch1">第 1 章</a>重新安装。<br>
+    ✅ Windows 用户如果还不行，试试重启电脑（是的，重启解决很多问题）。
+  </div>
+
+  <div class="callout error">
+    <span class="callout-icon">❌</span> <strong>常见错误：安装报权限错误（EACCES / permission denied）</strong><br><br>
+    <strong>原因：</strong>当前用户权限不够。<br><br>
+    <strong>解决：</strong><br>
+    ✅ <strong>Mac / Linux：</strong>在命令前加 <code>sudo</code>，例如：<br>
+    <code>sudo npm install -g @anthropic-ai/claude-code</code>（会要求输入你的电脑登录密码）<br>
+    ✅ <strong>Windows：</strong>以管理员身份运行 PowerShell。右键点 PowerShell 图标 →「以管理员身份运行」。
+  </div>
+
+  <div class="callout error">
+    <span class="callout-icon">❌</span> <strong>常见错误：安装速度很慢 / 一直卡住不动</strong><br><br>
+    <strong>原因：</strong>npm 默认从国外服务器下载，国内网络可能很慢。<br><br>
+    <strong>解决：</strong>换成国内的镜像源（淘宝 npm 镜像）。在终端中先执行：<br>
+    <code>npm config set registry https://registry.npmmirror.com</code><br>
+    然后再重新执行 install 命令。以后下载速度会快很多！
+  </div>
+
+  <div class="callout error">
+    <span class="callout-icon">❌</span> <strong>常见错误：Claude Code 启动后报错或闪退</strong><br><br>
+    <strong>解决：</strong><br>
+    ✅ 检查 Node.js 版本是否 ≥ 18：<code>node -v</code><br>
+    ✅ 如果版本太低，去 Node.js 官网下载最新 LTS 版本覆盖安装。<br>
+    ✅ 检查网络连接：Claude Code 需要联网才能和 AI 对话。
+  </div>
+
+  <div class="callout error">
+    <span class="callout-icon">❌</span> <strong>常见错误：网络连接失败 / 代理问题</strong><br><br>
+    <strong>原因：</strong>如果你开了 VPN 或代理，可能导致 Claude Code 连接失败。<br><br>
+    <strong>解决：</strong><br>
+    ✅ 试试关闭 VPN 再启动 Claude Code。<br>
+    ✅ 如果必须用代理，可以在终端中设置代理环境变量后再启动。
+  </div>
+</section>
+
+<!-- ===== 第 8 章 ===== -->
+<section class="chapter" id="ch7">
+  <h2><span class="chapter-num">8</span> 下一步学什么</h2>
+  <p>你已经掌握了 Claude Code 的基本用法。但这只是开始——它还有很多强大的功能等着你去探索。</p>
+
+  <h3>📚 官方资源</h3>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><strong>官方文档：</strong><a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank">https://docs.anthropic.com/en/docs/claude-code</a>——最全面的参考资料</li>
+    <li><strong>Claude Code 概述：</strong><a href="https://docs.anthropic.com/en/docs/claude-code/overview" target="_blank">功能概览和快速入门</a></li>
+  </ul>
+
+  <h3>🚀 进阶功能预览</h3>
+  <table class="compare-table">
+    <thead>
+      <tr><th>功能</th><th>简介</th><th>适合场景</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>项目模式</strong></td>
+        <td>让 Claude Code 理解整个项目结构和代码</td>
+        <td>有多个文件的复杂项目</td>
+      </tr>
+      <tr>
+        <td><strong>/commands 快捷指令</strong></td>
+        <td>用简短命令快速执行常见操作</td>
+        <td>重复性任务，提高效率</td>
+      </tr>
+      <tr>
+        <td><strong>MCP 工具扩展</strong></td>
+        <td>给 Claude Code 接入外部工具和数据源</td>
+        <td>连接数据库、API 等专业场景</td>
+      </tr>
+      <tr>
+        <td><strong>CLAUDE.md 配置</strong></td>
+        <td>自定义 Claude Code 的行为和偏好</td>
+        <td>让 AI 按你的习惯工作</td>
+      </tr>
+      <tr>
+        <td><strong>Git 集成</strong></td>
+        <td>AI 帮你管理代码版本和提交</td>
+        <td>团队协作、代码备份</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>🗺️ 推荐学习路径</h3>
+  <ol style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li><strong>第 1 周：</strong>每天用 Claude Code 做一个小任务（写个网页、解释一段代码、改个样式）——熟悉交互方式</li>
+    <li><strong>第 2 周：</strong>尝试让 Claude Code 帮你完成一个完整的小项目（比如个人主页、在线简历）</li>
+    <li><strong>第 3 周：</strong>学习项目模式和 CLAUDE.md 配置，让 Claude Code 更懂你</li>
+    <li><strong>第 4 周+：</strong>探索 MCP 工具和进阶功能，把 Claude Code 融入日常工作流</li>
+  </ol>
+
+  <h3>💬 社区与支持</h3>
+  <ul style="margin: 8px 0 16px 24px; color: var(--text-secondary);">
+    <li>遇到问题可以在 Anthropic 官方社区提问</li>
+    <li>关注 Claude Code 更新日志，了解新功能</li>
+    <li>把你的使用经验和技巧分享给身边的朋友</li>
+  </ul>
+
+  <div class="callout tip">
+    <span class="callout-icon">💡</span> <strong>最后一个建议：</strong>学习编程最好的方式是<strong>动手做</strong>。不要怕犯错——每一个 bug 都是学习的机会，而且你现在有一个 AI 助手帮你一起解决它们！
+  </div>
+</section>
+
+<!-- 页尾 -->
+<footer>
+  <p>本文档作者：DTWwww &nbsp;|&nbsp; 联系邮箱：1216665430@qq.com</p>
+  <p>🤖 本教程由 AI 辅助生成 &nbsp;|&nbsp; Claude Code 入门指南</p>
+  <p style="margin-top: 8px;">
+    最好的学习时间是现在 — 打开终端，输入 <code>claude</code>，开始你的 AI 编程之旅吧！
+  </p>
+</footer>
+
+</main>
+
+<script>
+// ================================================================
+//  全分辨率响应式 JS — 进度条 / 复制 / 菜单 / 导航高亮
+// ================================================================
+
+// ===== 进度条 =====
+(function() {
+  var ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(function() {
+        var scrollTop = window.scrollY;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        document.getElementById('progress-bar').style.width = progress + '%';
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+})();
+
+// ===== 复制按钮 =====
+document.querySelectorAll('.copy-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var codeBlock = btn.nextElementSibling;
+    var code = codeBlock.textContent || codeBlock.innerText;
+    navigator.clipboard.writeText(code.trim()).then(function() {
+      btn.textContent = '✅ 已复制';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = '📋 复制';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(function() {
+      // 降级：选中文本让用户手动复制
+      var range = document.createRange();
+      range.selectNodeContents(codeBlock);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      btn.textContent = '⚠ 请 Ctrl+C';
+      setTimeout(function() { btn.textContent = '📋 复制'; }, 2000);
+    });
+  });
+});
+
+// ===== 灯箱（图片点击全屏预览） =====
+var lightbox = document.getElementById('lightbox');
+var lightboxImg = document.getElementById('lightbox-img');
+var lightboxClose = document.getElementById('lightbox-close');
+
+// 点击任意 .screenshot-img 打开灯箱
+document.querySelectorAll('.screenshot-img').forEach(function(img) {
+  img.addEventListener('click', function(e) {
+    e.stopPropagation();
+    lightboxImg.src = this.src;
+    lightboxImg.alt = this.alt;
+    lightbox.classList.add('show');
+    document.body.style.overflow = 'hidden';   // 禁止背景滚动
+  });
+});
+
+// 关闭灯箱
+function closeLightbox() {
+  lightbox.classList.remove('show');
+  document.body.style.overflow = '';
+  // 延迟清空 src，防止关闭动画时闪白
+  setTimeout(function() { lightboxImg.src = ''; }, 300);
+}
+
+lightbox.addEventListener('click', closeLightbox);
+lightboxClose.addEventListener('click', function(e) {
+  e.stopPropagation();
+  closeLightbox();
+});
+
+// 点击图片本身不关闭（阻止冒泡）
+lightboxImg.addEventListener('click', function(e) {
+  e.stopPropagation();
+});
+
+// ESC 键关闭
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && lightbox.classList.contains('show')) {
+    closeLightbox();
+  }
+});
+
+// ===== 移动端/平板菜单 =====
+var sidebar = document.getElementById('sidebar');
+var menuToggle = document.getElementById('menu-toggle');
+var overlay = document.getElementById('overlay');
+var MOBILE_BREAKPOINT = 1024;   // 与 CSS 断点对齐
+
+function openMenu() {
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  menuToggle.textContent = '✕';
+  document.body.style.overflow = 'hidden';  // 防止背景滚动
+}
+
+function closeMenu() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  menuToggle.textContent = '☰';
+  document.body.style.overflow = '';
+}
+
+menuToggle.addEventListener('click', function() {
+  sidebar.classList.contains('open') ? closeMenu() : openMenu();
+});
+
+overlay.addEventListener('click', closeMenu);
+
+// 窗口大小变化时，如果在桌面端则强制关闭菜单
+var resizeTimer;
+window.addEventListener('resize', function() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function() {
+    if (window.innerWidth >= MOBILE_BREAKPOINT) {
+      closeMenu();
+    }
+  }, 150);
+});
+
+// 点击导航链接后在移动端/平板自动关闭菜单
+sidebar.querySelectorAll('a').forEach(function(link) {
+  link.addEventListener('click', function() {
+    if (window.innerWidth < MOBILE_BREAKPOINT) {
+      closeMenu();
+    }
+  });
+});
+
+// ESC 键关闭菜单
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+    closeMenu();
+  }
+});
+
+// ===== 导航高亮（滚动监听 + IntersectionObserver） =====
+var sections = document.querySelectorAll('.chapter[id]');
+var navLinks = document.querySelectorAll('#sidebar nav a');
+
+// 优先使用 IntersectionObserver（更高效）
+if ('IntersectionObserver' in window) {
+  var observerOptions = {
+    rootMargin: '-80px 0px -60% 0px',  // 进入顶部 80px 区域时触发
+    threshold: 0
+  };
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        navLinks.forEach(function(link) {
+          var isActive = link.getAttribute('href') === '#' + id;
+          link.classList.toggle('active', isActive);
+        });
+      }
+    });
+  }, observerOptions);
+
+  sections.forEach(function(section) { observer.observe(section); });
+} else {
+  // 降级：滚动监听
+  var tickingNav = false;
+  window.addEventListener('scroll', function() {
+    if (!tickingNav) {
+      requestAnimationFrame(function() {
+        var currentId = '';
+        sections.forEach(function(section) {
+          if (section.getBoundingClientRect().top <= 120) {
+            currentId = section.id;
+          }
+        });
+        navLinks.forEach(function(link) {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+        });
+        tickingNav = false;
+      });
+      tickingNav = true;
+    }
+  });
+}
+
+// 初始高亮
+(function() {
+  var initialId = '';
+  sections.forEach(function(s) {
+    if (s.getBoundingClientRect().top <= 120) initialId = s.id;
+  });
+  navLinks.forEach(function(l) {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + initialId);
+  });
+})();
+</script>
+
+</body>
+</html>
